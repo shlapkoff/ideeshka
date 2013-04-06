@@ -1,6 +1,5 @@
-// ATA.cpp: определяет точку входа для консольного приложения.
-// АВМиС, лабораторная #2
-// Опрос PCI устройств
+// РђР’РњРёРЎ. Р›Р°Р±РѕСЂР°С‚РѕСЂРЅР°СЏ СЂР°Р±РѕС‚Р° 2
+// РћРїСЂРѕСЃ ATA (IDE) СѓСЃС‚СЂРѕР№СЃС‚РІ
 // Solodky, Shlapkov / 050502
 // andrey@shlapkoff.name / April 2013
 
@@ -67,7 +66,7 @@ bool waitReady(int channelNum)
 {
     for (int i = 0; i < 1000; i++)
     {
-        unsigned char state = _inp(altStateRegister[channelNum]);	//регистр состояния
+        unsigned char state = _inp(altStateRegister[channelNum]);	//status register
         if(state & (1 << 6)) return true;
     }
     return false;
@@ -77,7 +76,7 @@ bool waitReady(int channelNum)
 void  WaitDeviceBusy(int channelNum)
 {
     unsigned char state;
-    do state = _inp(altStateRegister[channelNum]); //регистр состояния
+    do state = _inp(altStateRegister[channelNum]); //status register
     while (state & (1 << 7));
 }
 
@@ -86,23 +85,23 @@ bool  getDeviceInfo(int devNum, int channelNum)
     const int commands[2] = {IDENTIFY_PACKET_DEVICE, IDENTIFY_DEVICE};
     for (int i = 0; i < 2; i++)
     {
-        // Лжидаем обнуления бита BSY
+        // wait bit BSY
         WaitDeviceBusy(channelNum);
 
-        // Адресуем устройство
+        // adress device
         unsigned char regData = (devNum << 4) + (7 << 5); //111X0000
-        _outp(DH_register[channelNum], regData); // номер устройства в DH
+        _outp(DH_register[channelNum], regData); //numver device in DH
 
-        // Дожидаемся признака готовности, если устройство присутствует
+        // if device set
         if(!waitReady(channelNum))  return false;      
 
-        // Записываем код команды в регистр команд
-        _outp(StateCommandRegister[channelNum], commands[i]); // в командный регистр
+        // write code command in register commands
+        _outp(StateCommandRegister[channelNum], commands[i]); // 
 
         WaitDeviceBusy(channelNum);
     }
 
-    // Получение конфигурационного блока
+    // get config block
     for( int i = 0; i < 256; i++ )
         data[i] = _inpw(dataRegister[channelNum] );
    
